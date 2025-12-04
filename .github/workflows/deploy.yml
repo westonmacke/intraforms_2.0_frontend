@@ -1,0 +1,51 @@
+name: Deploy to IIS via SFTP
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build production
+      run: npm run build
+    
+    - name: Get GitHub Actions IP
+      id: ip
+      run: |
+        echo "GitHub Actions Runner IP:"
+        curl -s https://api.ipify.org
+        echo ""
+        echo "Ensure this IP (or GitHub's IP ranges) are whitelisted on your Windows Server"
+    
+    - name: Deploy to IIS via SFTP
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SFTP_HOST }}
+        port: ${{ secrets.SFTP_PORT }}
+        username: ${{ secrets.SFTP_USERNAME }}
+        password: ${{ secrets.SFTP_PASSWORD }}
+        local_path: './dist/*'
+        remote_path: ${{ secrets.SFTP_REMOTE_PATH }}
+        sftp_only: true
+        delete_remote_files: false
+    
+    - name: Deployment Complete
+      run: |
+        echo "✅ Deployment completed successfully!"
+        echo "Site should be live at your IIS server"
