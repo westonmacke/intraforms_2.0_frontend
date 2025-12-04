@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IntraformsAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ada8a829fe85f2ec14522c396a200642ed84ae65")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a8b339a6cd76cf8f5dd612d298078e5213d8837")]
 [assembly: System.Reflection.AssemblyProductAttribute("IntraformsAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IntraformsAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

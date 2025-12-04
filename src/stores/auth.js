@@ -11,9 +11,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAuthenticated = computed(() => !!token.value)
-  const userName = computed(() => user.value ? `${user.value.first_name} ${user.value.last_name}` : '')
-  const userEmail = computed(() => user.value?.email || '')
-  const userRoles = computed(() => roles.value.map(r => r.name).join(', '))
+  const userName = computed(() => {
+    if (!user.value) return ''
+    const firstName = user.value.First_Name || user.value.first_name || ''
+    const lastName = user.value.Last_Name || user.value.last_name || ''
+    return `${firstName} ${lastName}`.trim()
+  })
+  const userEmail = computed(() => user.value?.Email || user.value?.email || '')
+  const userRoles = computed(() => roles.value.map(r => r.Name || r.name).join(', '))
 
   // Actions
   const setAuthData = (authData) => {

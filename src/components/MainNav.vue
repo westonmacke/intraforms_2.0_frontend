@@ -3,6 +3,7 @@
     expand-on-hover
     rail
     location="right"
+    permanent
   >
     <v-list>
       <v-list-item
@@ -43,6 +44,12 @@
           </v-menu>
         </template>
       </v-list-item>
+      <v-list-item 
+        prepend-icon="mdi-logout"
+        title="Logout" 
+        @click="handleLogout"
+        class="text-error"
+      ></v-list-item>
     </v-list>
 
     <v-divider></v-divider>
@@ -53,6 +60,13 @@
         title="Intraforms" 
         value="intraforms"
         v-if="authStore.hasAnyPermission(['forms.read', 'forms.create'])"
+      ></v-list-item>
+      
+      <v-list-item 
+        prepend-icon="mdi-shield-lock" 
+        title="Security Administration" 
+        value="security"
+        v-if="authStore.hasRole('Super Admin')"
       ></v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -66,11 +80,13 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Generate avatar URL based on user email
+// Generate avatar URL based on user name
 const userAvatar = computed(() => {
-  if (authStore.user?.email) {
+  if (authStore.user) {
     // Using UI Avatars service for dynamic avatar generation
-    const name = authStore.userName.replace(/\s+/g, '+')
+    const firstName = authStore.user.First_Name || authStore.user.first_name || ''
+    const lastName = authStore.user.Last_Name || authStore.user.last_name || ''
+    const name = `${firstName}+${lastName}`.trim()
     return `https://ui-avatars.com/api/?name=${name}&background=1976D2&color=fff&size=128`
   }
   return 'https://ui-avatars.com/api/?name=User&background=1976D2&color=fff&size=128'
