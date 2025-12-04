@@ -66,6 +66,7 @@
         prepend-icon="mdi-shield-lock" 
         title="Security Administration" 
         value="security"
+        @click="router.push('/security')"
         v-if="authStore.hasRole('Super Admin')"
       ></v-list-item>
     </v-list>

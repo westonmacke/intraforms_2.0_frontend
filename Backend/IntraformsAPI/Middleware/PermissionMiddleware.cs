@@ -34,7 +34,7 @@ namespace IntraformsAPI.Middleware
             try
             {
                 var userPermissions = JsonSerializer.Deserialize<List<PermissionDto>>(permissionsClaim.Value);
-                var hasPermission = userPermissions.Any(p => _permissions.Contains(p.name));
+                var hasPermission = userPermissions.Any(p => _permissions.Contains(p.Name ?? p.name));
 
                 if (!hasPermission)
                 {
@@ -53,8 +53,11 @@ namespace IntraformsAPI.Middleware
 
     public class PermissionDto
     {
+        public string Name { get; set; }
         public string name { get; set; }
+        public string Resource { get; set; }
         public string resource { get; set; }
+        public string Action { get; set; }
         public string action { get; set; }
     }
 }

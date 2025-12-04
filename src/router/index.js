@@ -25,6 +25,15 @@ const router = createRouter({
       name: 'about',
       component: () => import('../views/AboutView.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/security',
+      name: 'security',
+      component: () => import('../views/SecurityAdministration.vue'),
+      meta: { 
+        requiresAuth: true,
+        requiresRole: 'Super Admin'
+      }
     }
   ]
 })
@@ -48,6 +57,12 @@ router.beforeEach((to, from, next) => {
       name: 'login',
       query: { redirect: to.fullPath } // Save intended destination
     })
+    return
+  }
+
+  // Check role requirements
+  if (to.meta.requiresRole && !authStore.hasRole(to.meta.requiresRole)) {
+    next({ name: 'home' })
     return
   }
 
