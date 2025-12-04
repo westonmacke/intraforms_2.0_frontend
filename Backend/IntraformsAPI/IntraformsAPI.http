@@ -1,0 +1,6 @@
+@IntraformsAPI_HostAddress = http://localhost:5268
+
+GET {{IntraformsAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

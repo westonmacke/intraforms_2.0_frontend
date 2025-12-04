@@ -6,15 +6,41 @@
   >
     <v-list>
       <v-list-item
-        prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
-        title="John Leider"
+        :prepend-avatar="userAvatar"
+        :title="authStore.userName || 'User'"
+        :subtitle="authStore.userRoles"
       >
         <template v-slot:append>
-          <v-btn
-            icon="mdi-cog"
-            variant="text"
-            @click="handleSettings"
-          ></v-btn>
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn
+                icon="mdi-cog"
+                variant="text"
+                v-bind="props"
+              ></v-btn>
+            </template>
+            <v-list>
+              <v-list-item @click="handleSettings">
+                <v-list-item-title>
+                  <v-icon size="small" class="mr-2">mdi-cog</v-icon>
+                  Settings
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="handleProfile">
+                <v-list-item-title>
+                  <v-icon size="small" class="mr-2">mdi-account</v-icon>
+                  Profile
+                </v-list-item-title>
+              </v-list-item>
+              <v-divider></v-divider>
+              <v-list-item @click="handleLogout">
+                <v-list-item-title class="text-error">
+                  <v-icon size="small" class="mr-2">mdi-logout</v-icon>
+                  Logout
+                </v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </template>
       </v-list-item>
     </v-list>
@@ -22,17 +48,47 @@
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
-      <v-list-item prepend-icon="mdi-file-document-multiple" title="Intraforms" value="intraforms"></v-list-item>
+      <v-list-item 
+        prepend-icon="mdi-file-document-multiple" 
+        title="Intraforms" 
+        value="intraforms"
+        v-if="authStore.hasAnyPermission(['forms.read', 'forms.create'])"
+      ></v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>
 
 <script setup>
-// Main Navigation Drawer Component
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+// Generate avatar URL based on user email
+const userAvatar = computed(() => {
+  if (authStore.user?.email) {
+    // Using UI Avatars service for dynamic avatar generation
+    const name = authStore.userName.replace(/\s+/g, '+')
+    return `https://ui-avatars.com/api/?name=${name}&background=1976D2&color=fff&size=128`
+  }
+  return 'https://ui-avatars.com/api/?name=User&background=1976D2&color=fff&size=128'
+})
 
 const handleSettings = () => {
-  // TODO: Setup settings function
+  // TODO: Navigate to settings page
   console.log('Settings clicked')
+}
+
+const handleProfile = () => {
+  // TODO: Navigate to profile page
+  console.log('Profile clicked')
+}
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
 
