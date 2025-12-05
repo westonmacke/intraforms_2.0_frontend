@@ -2,11 +2,13 @@
 
 # Start Intraforms Backend API
 
-BACKEND_DIR="./Backend/IntraformsAPI"
+# Get project root (parent of custom_scripts)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+BACKEND_DIR="$PROJECT_ROOT/Backend/IntraformsAPI"
 LOG_FILE="/tmp/intraforms_api.log"
 PID_FILE="/tmp/intraforms_api.pid"
-
-cd "$(dirname "$0")"
 
 # Check if backend is already running
 if [ -f "$PID_FILE" ]; then
