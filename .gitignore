@@ -33,3 +33,6 @@ coverage
 # Deployment files
 deploy-package.zip
 backups/
+
+# SQL Scripts
+Backend/IntraformsAPI/Scripts/

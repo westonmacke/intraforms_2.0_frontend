@@ -178,6 +178,103 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Departments Section -->
+    <v-row>
+      <v-col cols="12">
+        <v-card>
+          <v-card-title>
+            <v-icon class="mr-2">mdi-domain</v-icon>
+            Departments
+          </v-card-title>
+
+          <v-data-table
+            :headers="departmentHeaders"
+            :items="departments"
+            :loading="departmentsLoading"
+            class="elevation-1"
+          >
+            <template v-slot:top>
+              <v-toolbar flat>
+                <v-toolbar-title>Manage Departments</v-toolbar-title>
+                <v-divider class="mx-4" inset vertical></v-divider>
+                <v-spacer></v-spacer>
+                <v-dialog v-model="departmentDialog" max-width="500px">
+                  <template v-slot:activator="{ props }">
+                    <v-btn color="primary" dark v-bind="props">
+                      <v-icon left>mdi-plus</v-icon>
+                      New Department
+                    </v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>
+                      <span class="text-h5">{{ departmentFormTitle }}</span>
+                    </v-card-title>
+
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-text-field
+                              v-model="editedDepartment.name"
+                              label="Department Name"
+                              :rules="[v => !!v || 'Name is required']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12">
+                            <v-textarea
+                              v-model="editedDepartment.description"
+                              label="Description"
+                              rows="3"
+                            ></v-textarea>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue-darken-1" variant="text" @click="closeDepartment">
+                        Cancel
+                      </v-btn>
+                      <v-btn color="blue-darken-1" variant="text" @click="saveDepartment">
+                        Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <v-dialog v-model="departmentDeleteDialog" max-width="500px">
+                  <v-card>
+                    <v-card-title class="text-h5">Are you sure you want to delete this department?</v-card-title>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="blue-darken-1" variant="text" @click="closeDepartmentDelete">Cancel</v-btn>
+                      <v-btn color="blue-darken-1" variant="text" @click="deleteDepartmentConfirm">OK</v-btn>
+                      <v-spacer></v-spacer>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-toolbar>
+            </template>
+
+            <template v-slot:item.actions="{ item }">
+              <v-icon size="small" class="me-2" @click="editDepartment(item)">
+                mdi-pencil
+              </v-icon>
+              <v-icon size="small" @click="deleteDepartment(item)">
+                mdi-delete
+              </v-icon>
+            </template>
+
+            <template v-slot:no-data>
+              <v-btn color="primary" @click="fetchDepartments">
+                Reset
+              </v-btn>
+            </template>
+          </v-data-table>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-container>
   </div>
 </template>
@@ -232,8 +329,36 @@ const defaultItem = {
   department_id: null
 }
 
+// Departments management
+const departmentDialog = ref(false)
+const departmentDeleteDialog = ref(false)
+const departmentsLoading = ref(false)
+const departments = ref([])
+const editedDepartmentIndex = ref(-1)
+const editedDepartment = ref({
+  id: 0,
+  name: '',
+  description: ''
+})
+
+const defaultDepartment = {
+  id: 0,
+  name: '',
+  description: ''
+}
+
+const departmentHeaders = [
+  { title: 'Name', key: 'name', align: 'start' },
+  { title: 'Description', key: 'description' },
+  { title: 'Actions', key: 'actions', sortable: false, width: '120px' }
+]
+
 const formTitle = computed(() => {
   return editedIndex.value === -1 ? 'New User' : 'Edit User'
+})
+
+const departmentFormTitle = computed(() => {
+  return editedDepartmentIndex.value === -1 ? 'New Department' : 'Edit Department'
 })
 
 watch(dialog, (val) => {
@@ -242,6 +367,14 @@ watch(dialog, (val) => {
 
 watch(dialogDelete, (val) => {
   val || closeDelete()
+})
+
+watch(departmentDialog, (val) => {
+  val || closeDepartment()
+})
+
+watch(departmentDeleteDialog, (val) => {
+  val || closeDepartmentDelete()
 })
 
 onMounted(() => {
@@ -276,11 +409,16 @@ async function fetchRoles() {
 }
 
 async function fetchDepartments() {
+  departmentsLoading.value = true
   try {
     const response = await api.get('/departments')
-    availableDepartments.value = response.data.departments || response.data || []
+    const depts = response.data.departments || response.data || []
+    departments.value = depts
+    availableDepartments.value = depts
   } catch (error) {
     console.error('Failed to load departments:', error)
+  } finally {
+    departmentsLoading.value = false
   }
 }
 
@@ -375,6 +513,72 @@ function getRoleColor(roleName) {
     'Basic User': 'grey'
   }
   return colors[roleName] || 'primary'
+}
+
+// Department Management Functions
+function editDepartment(item) {
+  editedDepartmentIndex.value = departments.value.indexOf(item)
+  editedDepartment.value = Object.assign({}, item)
+  departmentDialog.value = true
+}
+
+function deleteDepartment(item) {
+  editedDepartmentIndex.value = departments.value.indexOf(item)
+  editedDepartment.value = Object.assign({}, item)
+  departmentDeleteDialog.value = true
+}
+
+async function deleteDepartmentConfirm() {
+  try {
+    await api.delete(`/departments/${editedDepartment.value.id}`)
+    departments.value.splice(editedDepartmentIndex.value, 1)
+    availableDepartments.value = [...departments.value]
+  } catch (error) {
+    console.error('Failed to delete department:', error)
+    alert('Failed to delete department: ' + (error.response?.data?.message || error.message))
+  }
+  closeDepartmentDelete()
+}
+
+function closeDepartment() {
+  departmentDialog.value = false
+  nextTick(() => {
+    editedDepartment.value = Object.assign({}, defaultDepartment)
+    editedDepartmentIndex.value = -1
+  })
+}
+
+function closeDepartmentDelete() {
+  departmentDeleteDialog.value = false
+  nextTick(() => {
+    editedDepartment.value = Object.assign({}, defaultDepartment)
+    editedDepartmentIndex.value = -1
+  })
+}
+
+async function saveDepartment() {
+  if (!editedDepartment.value.name) {
+    alert('Department name is required')
+    return
+  }
+
+  try {
+    if (editedDepartmentIndex.value > -1) {
+      // Update existing department
+      const response = await api.put(`/departments/${editedDepartment.value.id}`, editedDepartment.value)
+      Object.assign(departments.value[editedDepartmentIndex.value], response.data.department || editedDepartment.value)
+    } else {
+      // Create new department
+      const response = await api.post('/departments', editedDepartment.value)
+      departments.value.push(response.data.department || editedDepartment.value)
+    }
+    availableDepartments.value = [...departments.value]
+    await fetchDepartments()
+  } catch (error) {
+    console.error('Failed to save department:', error)
+    alert('Failed to save department: ' + (error.response?.data?.message || error.message))
+  }
+  closeDepartment()
 }
 </script>
 
