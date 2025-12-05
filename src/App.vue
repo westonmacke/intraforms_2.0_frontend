@@ -1,11 +1,13 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <v-app-bar-title>Intraforms</v-app-bar-title>
-      <v-spacer></v-spacer>
-      <v-btn icon to="/">
-        <v-icon>mdi-home</v-icon>
-      </v-btn>
+    <v-app-bar app color="white" elevation="1">
+      <v-app-bar-title>
+        <img 
+          src="https://www.ucbbanks.com/images/logos/small/multi-logo.png" 
+          alt="UCB Banks Logo" 
+          style="height: 40px; vertical-align: middle;"
+        />
+      </v-app-bar-title>
     </v-app-bar>
 
     <v-main>
