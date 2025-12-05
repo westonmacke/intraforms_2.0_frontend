@@ -1,9 +1,24 @@
 <template>
   <v-card elevation="2" class="mb-4">
-    <v-card-title class="bg-grey-lighten-4">
+    <v-card-title class="bg-grey-lighten-4 d-flex align-center">
       <v-icon class="mr-2">mdi-chart-bar</v-icon>
       Branch DDA
+      <v-spacer></v-spacer>
+      <v-btn
+        v-if="isSystemAdmin"
+        icon="mdi-cog"
+        variant="text"
+        size="small"
+        density="compact"
+        @click="showSettings = true"
+      ></v-btn>
     </v-card-title>
+    <WidgetSettingsDialog
+      v-model="showSettings"
+      widget-name="Branch DDA"
+      widget-id="home_dda"
+      @save="saveWidgetSettings"
+    />
     <v-card-text>
       <canvas ref="chartCanvas"></canvas>
     </v-card-text>
@@ -30,8 +45,22 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Chart, registerables } from 'chart.js'
+import { useAuthStore } from '@/stores/auth'
+import WidgetSettingsDialog from './WidgetSettingsDialog.vue'
 
 Chart.register(...registerables)
+
+const authStore = useAuthStore()
+const showSettings = ref(false)
+
+const isSystemAdmin = computed(() => {
+  return authStore.userRole === 'Super Admin'
+})
+
+const saveWidgetSettings = (settings) => {
+  console.log('Widget settings saved:', settings)
+  // TODO: Save to API
+}
 
 const chartCanvas = ref(null)
 const ddaData = [45, -12, 38, -8, 22, 31]

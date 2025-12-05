@@ -1,9 +1,24 @@
 <template>
   <v-card>
-    <v-card-title class="d-flex align-center pe-2">
+    <v-card-title class="bg-grey-lighten-4 d-flex align-center pe-2">
       <v-icon icon="mdi-account-group" class="me-2"></v-icon>
       Staff Directory
+      <v-spacer></v-spacer>
+      <v-btn
+        v-if="isSystemAdmin"
+        icon="mdi-cog"
+        variant="text"
+        size="small"
+        density="compact"
+        @click="showSettings = true"
+      ></v-btn>
     </v-card-title>
+    <WidgetSettingsDialog
+      v-model="showSettings"
+      widget-name="Staff Directory"
+      widget-id="home_staff_search"
+      @save="saveWidgetSettings"
+    />
 
     <v-divider></v-divider>
 
@@ -55,6 +70,20 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import WidgetSettingsDialog from './WidgetSettingsDialog.vue'
+
+const authStore = useAuthStore()
+const showSettings = ref(false)
+
+const isSystemAdmin = computed(() => {
+  return authStore.userRole === 'Super Admin'
+})
+
+const saveWidgetSettings = (settings) => {
+  console.log('Widget settings saved:', settings)
+  // TODO: Save to API
+}
 
 const search = ref('')
 

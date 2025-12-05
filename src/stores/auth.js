@@ -18,6 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
     return `${firstName} ${lastName}`.trim()
   })
   const userEmail = computed(() => user.value?.Email || user.value?.email || '')
+  const userRole = computed(() => roles.value.length > 0 ? (roles.value[0].Name || roles.value[0].name) : '')
   const userRoles = computed(() => roles.value.map(r => r.Name || r.name).join(', '))
 
   // Actions
@@ -100,6 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     userName,
     userEmail,
+    userRole,
     userRoles,
     // Actions
     login,

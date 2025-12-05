@@ -11,24 +11,39 @@
               <ImageCarousel />
             </v-col>
             <v-col cols="12" md="3" class="d-none d-md-block">
-              <AnnouncementWidget />
+              <AnnouncementWidget v-if="isWidgetVisible('home_announcements')" />
             </v-col>
           </v-row>
 
           <v-row>
             <!-- Left Sidebar -->
             <v-col cols="12" md="3" class="d-none d-md-block">
-              <BirthdayAnniversary />
-              <StaffSearch class="mt-4" />
+              <BirthdayAnniversary v-if="isWidgetVisible('home_birthday_anniversary')" />
+              <StaffSearch v-if="isWidgetVisible('home_staff_search')" class="mt-4" />
             </v-col>
 
             <!-- Main Feed -->
             <v-col cols="12" md="6">
-              <v-card elevation="2">
-                <v-card-title class="bg-grey-lighten-4">
+              <v-card v-if="isWidgetVisible('home_activity_feed')" elevation="2">
+                <v-card-title class="bg-grey-lighten-4 d-flex align-center">
                   <v-icon class="mr-2">mdi-post-outline</v-icon>
                   Activity Feed
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    v-if="isSystemAdmin"
+                    icon="mdi-cog"
+                    variant="text"
+                    size="small"
+                    density="compact"
+                    @click="showFeedSettings = true"
+                  ></v-btn>
                 </v-card-title>
+                <WidgetSettingsDialog
+                  v-model="showFeedSettings"
+                  widget-name="Activity Feed"
+                  widget-id="home_activity_feed"
+                  @save="saveWidgetSettings"
+                />
 
                 <v-card-text class="pa-3">
                   <!-- Create Post Card -->
@@ -59,16 +74,35 @@
                   />
                 </v-card-text>
               </v-card>
+
+              <RecentDocuments v-if="isWidgetVisible('home_recent_documents')" />
             </v-col>
             <!-- Right Sidebar -->
             <v-col cols="12" md="3" class="d-none d-md-block">
-              <DDAChart />
+              <DDAChart v-if="isWidgetVisible('home_dda')" />
 
-              <v-card elevation="2" class="mb-4">
-                <v-card-title class="bg-grey-lighten-4">
+              <SystemsStatus v-if="isWidgetVisible('home_systems_status')" />
+
+              <v-card v-if="isWidgetVisible('home_upcoming_events')" elevation="2" class="mb-4">
+                <v-card-title class="bg-grey-lighten-4 d-flex align-center">
                   <v-icon class="mr-2">mdi-calendar-today</v-icon>
                   Upcoming Events
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    v-if="isSystemAdmin"
+                    icon="mdi-cog"
+                    variant="text"
+                    size="small"
+                    density="compact"
+                    @click="showEventsSettings = true"
+                  ></v-btn>
                 </v-card-title>
+                <WidgetSettingsDialog
+                  v-model="showEventsSettings"
+                  widget-name="Upcoming Events"
+                  widget-id="home_upcoming_events"
+                  @save="saveWidgetSettings"
+                />
                 <v-list lines="two">
                   <v-list-item
                     v-for="(event, index) in upcomingEvents"
@@ -80,11 +114,26 @@
                 </v-list>
               </v-card>
 
-              <v-card elevation="2">
-                <v-card-title class="bg-grey-lighten-4">
+              <v-card v-if="isWidgetVisible('home_quick_stats')" elevation="2">
+                <v-card-title class="bg-grey-lighten-4 d-flex align-center">
                   <v-icon class="mr-2">mdi-chart-line</v-icon>
                   Quick Stats
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    v-if="isSystemAdmin"
+                    icon="mdi-cog"
+                    variant="text"
+                    size="small"
+                    density="compact"
+                    @click="showStatsSettings = true"
+                  ></v-btn>
                 </v-card-title>
+                <WidgetSettingsDialog
+                  v-model="showStatsSettings"
+                  widget-name="Quick Stats"
+                  widget-id="home_quick_stats"
+                  @save="saveWidgetSettings"
+                />
                 <v-list>
                   <v-list-item>
                     <v-list-item-title class="text-h4 text-primary">142</v-list-item-title>
@@ -128,6 +177,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useWidgetSettingsStore } from '@/stores/widgetSettings'
 import MainNav from './MainNav.vue'
 import PostCard from './Home_Feed.vue'
 import AnnouncementWidget from './Home_AnnouncementWidget.vue'
@@ -135,10 +185,36 @@ import ImageCarousel from './Home_ImageCarousel.vue'
 import BirthdayAnniversary from './Home_BirthdayAnniversary.vue'
 import DDAChart from './Home_DDA.vue'
 import StaffSearch from './Home_StaffSearch.vue'
+import SystemsStatus from './Home_SystemsStatus.vue'
+import RecentDocuments from './Home_RecentDocuments.vue'
+import WidgetSettingsDialog from './WidgetSettingsDialog.vue'
 
 const authStore = useAuthStore()
+const widgetSettingsStore = useWidgetSettingsStore()
 const showPostDialog = ref(false)
 const newPostContent = ref('')
+const showFeedSettings = ref(false)
+const showEventsSettings = ref(false)
+const showStatsSettings = ref(false)
+
+const isSystemAdmin = computed(() => {
+  return authStore.userRole === 'Super Admin'
+})
+
+// Get user's role ID for widget visibility checks
+const userRoleId = computed(() => {
+  return authStore.roles.length > 0 ? authStore.roles[0].id : null
+})
+
+// Check widget visibility
+const isWidgetVisible = (widgetId) => {
+  return widgetSettingsStore.isWidgetVisible(widgetId, userRoleId.value, null)
+}
+
+const saveWidgetSettings = (settings) => {
+  widgetSettingsStore.saveSettings(settings.widgetId, settings)
+  console.log('Widget settings saved:', settings)
+}
 
 const userInitials = computed(() => {
   const name = authStore.userName || 'User'

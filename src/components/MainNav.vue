@@ -55,6 +55,8 @@
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
+      <v-list-subheader class="text-subtitle-2 font-weight-bold">Quick Links</v-list-subheader>
+
       <v-list-item 
         prepend-icon="mdi-file-document-multiple" 
         title="Intraforms" 
@@ -68,6 +70,28 @@
         value="security"
         @click="router.push('/security')"
         v-if="authStore.hasRole('Super Admin')"
+      ></v-list-item>
+
+      <v-divider class="my-2"></v-divider>
+
+      <v-list-subheader class="text-subtitle-2 font-weight-bold">Department Links</v-list-subheader>
+
+      <v-list-item 
+        prepend-icon="mdi-chart-line" 
+        title="Sales Dashboard" 
+        value="sales"
+      ></v-list-item>
+
+      <v-list-item 
+        prepend-icon="mdi-account-group" 
+        title="HR Portal" 
+        value="hr"
+      ></v-list-item>
+
+      <v-list-item 
+        prepend-icon="mdi-tools" 
+        title="IT Support" 
+        value="it"
       ></v-list-item>
     </v-list>
   </v-navigation-drawer>
