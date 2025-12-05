@@ -55,21 +55,26 @@
     <v-divider></v-divider>
 
     <v-list density="compact" nav>
-      <v-list-subheader class="text-subtitle-2 font-weight-bold">Quick Links</v-list-subheader>
+      <v-list-subheader class="text-subtitle-2 font-weight-bold d-flex align-center justify-space-between px-4">
+        <span>Quick Links</span>
+        <v-btn
+          v-if="isSystemAdmin"
+          icon="mdi-pencil"
+          variant="text"
+          size="x-small"
+          density="compact"
+          @click="showQuickLinksDialog = true"
+          class="ml-2"
+        ></v-btn>
+      </v-list-subheader>
 
-      <v-list-item 
-        prepend-icon="mdi-file-document-multiple" 
-        title="Intraforms" 
-        value="intraforms"
-        v-if="authStore.hasAnyPermission(['forms.read', 'forms.create'])"
-      ></v-list-item>
-      
-      <v-list-item 
-        prepend-icon="mdi-shield-lock" 
-        title="Security Administration" 
-        value="security"
-        @click="router.push('/security')"
-        v-if="authStore.hasRole('Super Admin')"
+      <v-list-item
+        v-for="link in quickLinks"
+        :key="link.id"
+        :prepend-icon="link.icon"
+        :title="link.title"
+        :value="link.title.toLowerCase()"
+        @click="handleLinkClick(link)"
       ></v-list-item>
 
       <v-divider class="my-2"></v-divider>
@@ -94,16 +99,51 @@
         value="it"
       ></v-list-item>
     </v-list>
+
+    <QuickLinksDialog
+      v-model="showQuickLinksDialog"
+      @refresh="fetchQuickLinks"
+    />
   </v-navigation-drawer>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import QuickLinksDialog from './QuickLinksDialog.vue'
+import api from '@/services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const quickLinks = ref([])
+const showQuickLinksDialog = ref(false)
+
+const isSystemAdmin = computed(() => {
+  return authStore.userRole === 'Super Admin'
+})
+
+const fetchQuickLinks = async () => {
+  try {
+    const response = await api.get('/quicklinks')
+    quickLinks.value = response.data.links || []
+  } catch (error) {
+    console.error('Failed to fetch quick links:', error)
+  }
+}
+
+const handleLinkClick = (link) => {
+  if (link.linkType === 'external') {
+    window.open(link.url, '_blank')
+  } else {
+    router.push(link.url)
+  }
+}
+
+onMounted(() => {
+  fetchQuickLinks()
+})
 
 // Generate avatar URL based on user name
 const userAvatar = computed(() => {
