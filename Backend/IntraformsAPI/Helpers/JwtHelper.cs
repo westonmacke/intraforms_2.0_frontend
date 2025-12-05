@@ -14,7 +14,7 @@ namespace IntraformsAPI.Helpers
             _configuration = configuration;
         }
 
-        public string GenerateToken(int userId, string username, List<string> roles, List<object> permissions)
+        public string GenerateToken(int userId, string username, List<string> roles, List<object> permissions, int? departmentId = null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var secret = _configuration["Jwt:Secret"];
@@ -27,6 +27,12 @@ namespace IntraformsAPI.Helpers
                 new Claim("userId", userId.ToString()),
                 new Claim("username", username)
             };
+
+            // Add department if present
+            if (departmentId.HasValue)
+            {
+                claims.Add(new Claim("department_id", departmentId.Value.ToString()));
+            }
 
             // Add roles
             foreach (var role in roles)

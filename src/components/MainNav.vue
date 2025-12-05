@@ -79,30 +79,37 @@
 
       <v-divider class="my-2"></v-divider>
 
-      <v-list-subheader class="text-subtitle-2 font-weight-bold">Department Links</v-list-subheader>
+      <v-list-subheader class="text-subtitle-2 font-weight-bold d-flex justify-space-between align-center">
+        <span>Department Links</span>
+        <v-btn
+          v-if="isSystemAdmin"
+          icon="mdi-pencil"
+          variant="text"
+          size="x-small"
+          density="compact"
+          @click="showDepartmentLinksDialog = true"
+          class="ml-2"
+        ></v-btn>
+      </v-list-subheader>
 
-      <v-list-item 
-        prepend-icon="mdi-chart-line" 
-        title="Sales Dashboard" 
-        value="sales"
-      ></v-list-item>
-
-      <v-list-item 
-        prepend-icon="mdi-account-group" 
-        title="HR Portal" 
-        value="hr"
-      ></v-list-item>
-
-      <v-list-item 
-        prepend-icon="mdi-tools" 
-        title="IT Support" 
-        value="it"
+      <v-list-item
+        v-for="link in departmentLinks"
+        :key="link.id"
+        :prepend-icon="link.icon"
+        :title="link.title"
+        :value="link.title.toLowerCase()"
+        @click="handleLinkClick(link)"
       ></v-list-item>
     </v-list>
 
     <QuickLinksDialog
       v-model="showQuickLinksDialog"
       @refresh="fetchQuickLinks"
+    />
+    
+    <DepartmentLinksDialog
+      v-model="showDepartmentLinksDialog"
+      @refresh="fetchDepartmentLinks"
     />
   </v-navigation-drawer>
 </template>
@@ -112,13 +119,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import QuickLinksDialog from './QuickLinksDialog.vue'
+import DepartmentLinksDialog from './DepartmentLinksDialog.vue'
 import api from '@/services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const quickLinks = ref([])
+const departmentLinks = ref([])
 const showQuickLinksDialog = ref(false)
+const showDepartmentLinksDialog = ref(false)
 
 const isSystemAdmin = computed(() => {
   return authStore.userRole === 'Super Admin'
@@ -133,6 +143,15 @@ const fetchQuickLinks = async () => {
   }
 }
 
+const fetchDepartmentLinks = async () => {
+  try {
+    const response = await api.get('/departmentlinks')
+    departmentLinks.value = response.data.links || []
+  } catch (error) {
+    console.error('Failed to fetch department links:', error)
+  }
+}
+
 const handleLinkClick = (link) => {
   if (link.linkType === 'external') {
     window.open(link.url, '_blank')
@@ -143,6 +162,7 @@ const handleLinkClick = (link) => {
 
 onMounted(() => {
   fetchQuickLinks()
+  fetchDepartmentLinks()
 })
 
 // Generate avatar URL based on user name

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IntraformsAPI.Data;
 using IntraformsAPI.Middleware;
+using IntraformsAPI.Models;
 using Dapper;
 
 namespace IntraformsAPI.Controllers
@@ -192,10 +193,5 @@ namespace IntraformsAPI.Controllers
         public string Icon { get; set; }
         public string Url { get; set; }
         public string LinkType { get; set; }
-    }
-
-    public class ReorderDto
-    {
-        public List<int> LinkIds { get; set; }
     }
 }

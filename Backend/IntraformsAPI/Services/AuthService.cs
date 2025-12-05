@@ -25,7 +25,7 @@ namespace IntraformsAPI.Services
 
             // Get user
             var user = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT id, username, email, password_hash, first_name, last_name, active FROM users WHERE username = @Username AND active = 1",
+                "SELECT id, username, email, password_hash, first_name, last_name, active, department_id FROM users WHERE username = @Username AND active = 1",
                 new { request.Username }
             );
 
@@ -69,7 +69,7 @@ namespace IntraformsAPI.Services
             var roleNames = roles.Select(r => r.Name).ToList();
             var permissionsForToken = permissions.Select(p => new { p.Name, p.Resource, p.Action }).Cast<object>().ToList();
 
-            var token = _jwtHelper.GenerateToken(user.id, user.username, roleNames, permissionsForToken);
+            var token = _jwtHelper.GenerateToken(user.id, user.username, roleNames, permissionsForToken, user.department_id);
             var refreshToken = _jwtHelper.GenerateRefreshToken(user.id);
 
             return new AuthResponse
@@ -110,7 +110,7 @@ namespace IntraformsAPI.Services
 
             // Get user
             var user = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT id, username, email, first_name, last_name, active FROM users WHERE id = @UserId AND active = 1",
+                "SELECT id, username, email, first_name, last_name, active, department_id FROM users WHERE id = @UserId AND active = 1",
                 new { UserId = userId }
             );
 
@@ -141,7 +141,7 @@ namespace IntraformsAPI.Services
             var roleNames = roles.Select(r => r.Name).ToList();
             var permissionsForToken = permissions.Select(p => new { p.Name, p.Resource, p.Action }).Cast<object>().ToList();
 
-            var newToken = _jwtHelper.GenerateToken(user.id, user.username, roleNames, permissionsForToken);
+            var newToken = _jwtHelper.GenerateToken(user.id, user.username, roleNames, permissionsForToken, user.department_id);
             var newRefreshToken = _jwtHelper.GenerateRefreshToken(user.id);
 
             return new AuthResponse
@@ -171,6 +171,7 @@ namespace IntraformsAPI.Services
             public string first_name { get; set; }
             public string last_name { get; set; }
             public bool active { get; set; }
+            public int? department_id { get; set; }
         }
     }
 }

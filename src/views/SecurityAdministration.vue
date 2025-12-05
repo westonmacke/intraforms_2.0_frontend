@@ -99,6 +99,18 @@
                             ></v-select>
                           </v-col>
                           <v-col cols="12">
+                            <v-select
+                              v-model="editedItem.department_id"
+                              :items="availableDepartments"
+                              item-title="name"
+                              item-value="id"
+                              label="Department"
+                              clearable
+                              hint="Optional - Used for department-specific links"
+                              persistent-hint
+                            ></v-select>
+                          </v-col>
+                          <v-col cols="12">
                             <v-switch
                               v-model="editedItem.active"
                               label="Active"
@@ -138,6 +150,10 @@
               <v-chip :color="item.active ? 'green' : 'red'" dark small>
                 {{ item.active ? 'Active' : 'Inactive' }}
               </v-chip>
+            </template>
+
+            <template v-slot:item.department="{ item }">
+              {{ getDepartmentName(item.department_id) }}
             </template>
 
             <template v-slot:item.roles="{ item }">
@@ -180,6 +196,7 @@ const headers = [
   { title: 'Email', key: 'email' },
   { title: 'First Name', key: 'first_name' },
   { title: 'Last Name', key: 'last_name' },
+  { title: 'Department', key: 'department', sortable: false },
   { title: 'Roles', key: 'roles', sortable: false },
   { title: 'Status', key: 'active' },
   { title: 'Actions', key: 'actions', sortable: false }
@@ -187,6 +204,7 @@ const headers = [
 
 const users = ref([])
 const availableRoles = ref([])
+const availableDepartments = ref([])
 const editedIndex = ref(-1)
 const editedItem = ref({
   id: 0,
@@ -197,7 +215,8 @@ const editedItem = ref({
   password: '',
   active: true,
   roles: [],
-  selectedRoles: []
+  selectedRoles: [],
+  department_id: null
 })
 
 const defaultItem = {
@@ -209,7 +228,8 @@ const defaultItem = {
   password: '',
   active: true,
   roles: [],
-  selectedRoles: []
+  selectedRoles: [],
+  department_id: null
 }
 
 const formTitle = computed(() => {
@@ -227,6 +247,7 @@ watch(dialogDelete, (val) => {
 onMounted(() => {
   initialize()
   fetchRoles()
+  fetchDepartments()
 })
 
 async function initialize() {
@@ -254,6 +275,21 @@ async function fetchRoles() {
   }
 }
 
+async function fetchDepartments() {
+  try {
+    const response = await api.get('/departments')
+    availableDepartments.value = response.data.departments || response.data || []
+  } catch (error) {
+    console.error('Failed to load departments:', error)
+  }
+}
+
+function getDepartmentName(departmentId) {
+  if (!departmentId) return '-'
+  const dept = availableDepartments.value.find(d => d.id === departmentId)
+  return dept ? dept.name : '-'
+}
+
 async function editItem(item) {
   editedIndex.value = users.value.indexOf(item)
   
@@ -264,7 +300,8 @@ async function editItem(item) {
     
     editedItem.value = {
       ...item,
-      selectedRoles: userData.roles?.map(r => r.id || r.Id) || []
+      selectedRoles: userData.roles?.map(r => r.id || r.Id) || [],
+      department_id: userData.department_id || item.department_id || null
     }
   } catch (error) {
     console.error('Failed to load user details:', error)
@@ -308,17 +345,23 @@ function closeDelete() {
 
 async function save() {
   try {
+    console.log('Saving user:', editedItem.value)
     if (editedIndex.value > -1) {
       // Update existing user
       const response = await api.put(`/users/${editedItem.value.id}`, editedItem.value)
+      console.log('Update response:', response)
       Object.assign(users.value[editedIndex.value], response.data)
     } else {
       // Create new user
       const response = await api.post('/users', editedItem.value)
+      console.log('Create response:', response)
       users.value.push(response.data)
     }
+    // Refresh the list to get updated data
+    await initialize()
   } catch (error) {
     console.error('Failed to save user:', error)
+    alert('Failed to save user: ' + (error.response?.data?.message || error.message))
   }
   close()
 }
